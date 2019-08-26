@@ -2,10 +2,13 @@ const mongoose = require('mongoose')
 
 const postSchema = new mongoose.Schema({
   name: {
-    type: String,
+    type: String
+  },
+  date: {
+    type: Date,
     required: true
   },
-  note: {
+  notes: {
     type: String
   },
   type: {

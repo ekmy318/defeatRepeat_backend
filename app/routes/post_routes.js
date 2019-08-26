@@ -25,10 +25,9 @@ const requireToken = passport.authenticate('bearer', { session: false })
 
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
-const uploadFile = require('../../lib/s3UploadApi')
+const uploadFile = require('../../lib/s3_upload_api')
 const multer = require('multer')
 const upload = multer()
-const FileUpload = require('../models/file_upload')
 
 // INDEX
 // GET /posts
@@ -63,11 +62,13 @@ router.get('/posts/:id', requireToken, (req, res, next) => {
 // CREATE
 // POST /posts
 router.post('/posts', requireToken, upload.single('file'), (req, res, next) => {
+  console.log(req)
   uploadFile(req.file)
     .then(awsRes => {
-      return FileUpload.create({
+      return Post.create({
         name: awsRes.Key,
-        note: req.body.note,
+        date: req.date,
+        notes: req.body.note,
         type: req.file.mimetype,
         url: awsRes.Location,
         tag: req.body.tag,
