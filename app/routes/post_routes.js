@@ -62,20 +62,19 @@ router.get('/posts/:id', requireToken, (req, res, next) => {
 // CREATE
 // POST /posts
 router.post('/posts', requireToken, upload.single('file'), (req, res, next) => {
-  console.log(req)
   uploadFile(req.file)
     .then(awsRes => {
       return Post.create({
         name: awsRes.Key,
-        date: req.date,
-        notes: req.body.note,
-        type: req.file.mimetype,
-        url: awsRes.Location,
+        date: req.body.date,
+        notes: req.body.notes,
+        type: req.body.mimetype,
+        file: awsRes.Location,
         tag: req.body.tag,
-        owner: req.body.owner
+        owner: req.user.id
       })
     })
-    .then(post => res.state(201).json({ fileUpload: post.toObject() }))
+    .then(post => res.status(201).json({ post: post.toObject() }))
     // if an error occurs, pass it off to our error handler
     // the error handler needs the error message and the `res` object so that it
     // can send an error message back to the client

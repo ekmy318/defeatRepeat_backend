@@ -14,7 +14,7 @@ const postSchema = new mongoose.Schema({
   type: {
     type: String
   },
-  url: {
+  file: {
     type: String,
     required: true
   },
