@@ -25,9 +25,9 @@ const requireToken = passport.authenticate('bearer', { session: false })
 
 // instantiate a router (mini app that only handles routes)
 const router = express.Router()
-const uploadFile = require('../../lib/s3_upload_api')
+const { s3Upload, s3Delete } = require('../../lib/s3_upload_api')
 const multer = require('multer')
-const upload = multer()
+const multerUpload = multer()
 
 // INDEX
 // GET /posts
@@ -61,9 +61,9 @@ router.get('/posts/:id', requireToken, (req, res, next) => {
 
 // CREATE
 // POST /posts
-router.post('/posts', requireToken, upload.single('file'), (req, res, next) => {
-  console.log(req.body)
-  uploadFile(req.file)
+router.post('/posts', requireToken, multerUpload.single('file'), (req, res, next) => {
+  console.log('req.file:', req.file)
+  s3Upload(req.file)
     .then(awsRes => {
       return Post.create({
         name: awsRes.Key,
@@ -84,25 +84,40 @@ router.post('/posts', requireToken, upload.single('file'), (req, res, next) => {
 
 // // UPDATE
 // // PATCH /posts/5a7db6c74d55bc51bdf39793
-router.patch('/posts/:id', requireToken, removeBlanks, (req, res, next) => {
-  // if the client attempts to change the `owner` property by including a new
-  // owner, prevent that by deleting that key/value pair
-  delete req.body.post.owner
-
-  Post.findById(req.params.id)
-    .then(handle404)
-    .then(post => {
-      // pass the `req` object and the Mongoose record to `requireOwnership`
-      // it will throw an error if the current user isn't the owner
-      requireOwnership(req, post)
-
-      // pass the result of Mongoose's `.update` to the next `.then`
-      return post.update(req.body.post)
-    })
-    // if that succeeded, return 204 and no JSON
-    .then(() => res.sendStatus(204))
-    // if an error occurs, pass it to the handler
-    .catch(next)
+router.patch('/posts/:id', requireToken, multerUpload.single('file'), (req, res, next) => {
+  req.body.owner = req.user.id
+  delete req.body.owner
+  if (req.file) {
+    s3Upload(req.file)
+      .then(awsRes => {
+        Post.findById(req.params.id)
+          .then(handle404)
+          .then(post => {
+            requireOwnership(req, post)
+            if (post.file) {
+              s3Delete({
+                Bucket: process.env.BUCKET_NAME,
+                Key: post.file.split('/').pop()
+              })
+            }
+            return post.update({
+              ...req.body,
+              file: awsRes.Location
+            })
+          })
+          .then(() => res.sendStatus(204))
+          .catch(next)
+      })
+  } else {
+    Post.findById(req.params.id)
+      .then(handle404)
+      .then(post => {
+        requireOwnership(req, post)
+        return post.update(req.body)
+      })
+      .then(() => res.sendStatus(204))
+      .catch(next)
+  }
 })
 
 // // DESTROY
