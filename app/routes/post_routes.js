@@ -62,6 +62,7 @@ router.get('/posts/:id', requireToken, (req, res, next) => {
 // CREATE
 // POST /posts
 router.post('/posts', requireToken, upload.single('file'), (req, res, next) => {
+  console.log(req.body)
   uploadFile(req.file)
     .then(awsRes => {
       return Post.create({

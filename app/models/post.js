@@ -15,8 +15,7 @@ const postSchema = new mongoose.Schema({
     type: String
   },
   file: {
-    type: String,
-    required: true
+    type: String
   },
   tag: {
     type: String
