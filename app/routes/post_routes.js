@@ -15,7 +15,7 @@ const handle404 = customErrors.handle404
 // we'll use this function to send 401 when a user tries to modify a resource
 // that's owned by someone else
 const requireOwnership = customErrors.requireOwnership
-
+const removeBlanks = require('../../lib/remove_blank_fields')
 // this is middleware that will remove blank fields from `req.body`, e.g.
 // passing this as a second argument to `router.<verb>` will make it
 // so that a token MUST be passed for that route to be available
@@ -82,7 +82,7 @@ router.post('/posts', requireToken, multerUpload.single('file'), (req, res, next
 
 // // UPDATE
 // // PATCH /posts/5a7db6c74d55bc51bdf39793
-router.patch('/posts/:id', requireToken, multerUpload.single('file'), (req, res, next) => {
+router.patch('/posts/:id', removeBlanks, requireToken, multerUpload.single('file'), (req, res, next) => {
   req.body.owner = req.user.id
   delete req.body.owner
   if (req.file) {
@@ -111,7 +111,15 @@ router.patch('/posts/:id', requireToken, multerUpload.single('file'), (req, res,
       .then(handle404)
       .then(post => {
         requireOwnership(req, post)
-        return post.update(req.body)
+        // return post.update(req.body)
+        return post.update({
+          name: req.body.name,
+          date: req.body.date,
+          notes: req.body.notes,
+          type: req.body.mimetype,
+          tags: JSON.parse(req.body.tags).map(tag => tag.text),
+          owner: req.user.id
+        })
       })
       .then(() => res.sendStatus(204))
       .catch(next)
