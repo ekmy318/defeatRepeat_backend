@@ -17,9 +17,9 @@ const postSchema = new mongoose.Schema({
   file: {
     type: String
   },
-  tag: {
+  tags: [{
     type: String
-  },
+  }],
   owner: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',

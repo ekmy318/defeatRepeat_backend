@@ -61,7 +61,6 @@ router.get('/posts/:id', requireToken, (req, res, next) => {
 // CREATE
 // POST /posts
 router.post('/posts', requireToken, multerUpload.single('file'), (req, res, next) => {
-  console.log('req.file:', req.file)
   s3Upload(req.file)
     .then(awsRes => {
       return Post.create({
@@ -70,7 +69,7 @@ router.post('/posts', requireToken, multerUpload.single('file'), (req, res, next
         notes: req.body.notes,
         type: req.body.mimetype,
         file: awsRes.Location,
-        tag: req.body.tag,
+        tags: JSON.parse(req.body.tags).map(tag => tag.text),
         owner: req.user.id
       })
     })
