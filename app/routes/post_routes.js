@@ -99,7 +99,12 @@ router.patch('/posts/:id', removeBlanks, requireToken, multerUpload.single('file
               })
             }
             return post.update({
-              ...req.body,
+              name: req.body.name,
+              date: req.body.date,
+              notes: req.body.notes,
+              type: req.body.mimetype,
+              tags: JSON.parse(req.body.tags).map(tag => tag.text),
+              owner: req.user.id,
               file: awsRes.Location
             })
           })
