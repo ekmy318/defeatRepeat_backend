@@ -111,7 +111,6 @@ router.patch('/posts/:id', removeBlanks, requireToken, multerUpload.single('file
       .then(handle404)
       .then(post => {
         requireOwnership(req, post)
-        // return post.update(req.body)
         return post.update({
           name: req.body.name,
           date: req.body.date,
