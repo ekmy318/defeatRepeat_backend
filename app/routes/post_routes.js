@@ -69,7 +69,7 @@ router.post('/posts', requireToken, multerUpload.single('file'), (req, res, next
         notes: req.body.notes,
         type: req.body.mimetype,
         file: awsRes.Location,
-        tags: JSON.parse(req.body.tags).map(tag => tag.text),
+        tags: JSON.parse(req.body.tags).map(tag => tag.text.toLowerCase()),
         owner: req.user.id
       })
     })
@@ -103,7 +103,7 @@ router.patch('/posts/:id', removeBlanks, requireToken, multerUpload.single('file
               date: req.body.date,
               notes: req.body.notes,
               type: req.body.mimetype,
-              tags: JSON.parse(req.body.tags).map(tag => tag.text),
+              tags: JSON.parse(req.body.tags).map(tag => tag.text.toLowerCase()),
               owner: req.user.id,
               file: awsRes.Location
             })
@@ -121,7 +121,7 @@ router.patch('/posts/:id', removeBlanks, requireToken, multerUpload.single('file
           date: req.body.date,
           notes: req.body.notes,
           type: req.body.mimetype,
-          tags: JSON.parse(req.body.tags).map(tag => tag.text),
+          tags: JSON.parse(req.body.tags).map(tag => tag.text.toLowerCase()),
           owner: req.user.id
         })
       })
